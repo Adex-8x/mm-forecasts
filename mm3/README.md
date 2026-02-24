@@ -162,7 +162,7 @@ And yes, you *can* do exactly that!
 
 ...though it's not like it'd be that easy!
 
-We get a spooky-looking error that ultimately culminates to a `KeyError: 11621`. Participants of this event and later ones might recognize 11621 as the magic number needed to enable custom dialogue box formats. There isn't much importance to 11621 as a number itself—it's somewhat of an homage to [another hack](https://hacks.skytemple.org/h/fragments3) also displayed 11621 in an error, given that the hack outright encrypted one of its secret scripts! ~~I bet you can guess the cipher used.~~
+We get a spooky-looking error that ultimately culminates to a `KeyError: 11621`. Participants of this event and later ones might recognize 11621 as the magic number needed to enable custom dialogue box formats. There isn't much importance to 11621 as a number itself—it's somewhat of an homage to [another hack](https://hacks.skytemple.org/h/fragments3) that also displayed 11621 in an error, given that the hack outright encrypted one of its secret scripts! ~~I bet you can guess the cipher used.~~
 
 However, this script doesn't opt for such drastic measures. Analyzing the above error, we see that it failed inside `_read_single_op_code` on [line 233](https://github.com/SkyTemple/skytemple-files/blob/386f8988d12f7a2568b857ce9870cdaf16962eb1/skytemple_files/script/ssb/model.py#L233). At the time of writing this, we can see that this line of code attempts to look up an SSB opcode by its ID. In other words, SkyTemple's decompiler encountered an opcode with the ID 11621, and consequently gave up because it doesn't have any opcode associated with that value!
 
@@ -254,7 +254,7 @@ But don't think that the ExplorerScript decompiler immediately gives up once it 
 
 ## Solvers
 Congratulations to the whopping two solvers! Who could've seen these two coming?
-- [irdkwia](https://github.com/irdkwia/)
+- [irdkwia](https://github.com/irdkwia)
 	- Went above and beyond by producing a valid decompilation of `marcus.ssb`!
 - [techticks](https://github.com/tech-ticks)
 	- Went above and beyond by solving the FORECAST during his 47-hour period! The last part of his scene even directly references `marcus.ssb`!
@@ -266,5 +266,6 @@ The following event, MM4, doesn't have a FORECAST, but it *does* have new instan
 ## Takeaways
 - **Denoting Completion:** You might have noticed that there wasn't an actual way for a participant to *prove* that they completed this FORECAST. And what counts as completion, anyway? Viewing the script? But what if someone views it in a hex editor? It's a bit of a mess, but that's somewhat expected for the first attempt at something like this. Next time, we should have clear-cut way to discern if someone finished!
 - **Avoiding Cheese:** A hex editor trumps all. No file can truly escape it, so the best you can do is make the human using it have a miserable time. Next time, maybe introduce some form of encryption or compression?
-- **Hints:** There's a weird, not-so-fine balance of wanting participants to uncover a secret of yours, but not wanting to announce it to the whole world ~~unless you go the full CTF route~~. It's no longer a secret in that case. Given that only two people solved this FORECAST, more could definitely be done next time to hint at the existence of a secret.
+- **More Hints:** There's a weird, not-so-fine balance of wanting participants to uncover a secret of yours, but not wanting to announce it to the whole world ~~unless you go the full CTF route~~. It's no longer a secret in that case. Given that only two people solved this FORECAST, more could definitely be done next time to hint at the existence of a secret.
+- **Script Manipulation:** We managed to hide several `debug_Print` opcodes in what was otherwise a successful ExplorerScript decompilation. Maybe this could be exploited further in the future to do more devious things?
 - **Challenge Structure:** Too much guesswork. Tone that down. Maybe.
