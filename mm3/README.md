@@ -4,22 +4,24 @@
 The very first FORECAST! As such, this is the most standalone, rudimentary, and guessworky of the bunch. It can be easily cheesed, though despite this, it had significantly fewer solvers compared to the following FORECAST.
 
 Recommended Resources:
-- [CyberChef](https://gchq.github.io/CyberChef/)
+- [CyberChef](https://gchq.github.io/CyberChef)
+- [DSLazy](https://projectpokemon.org/home/files/file/2118-dslazy)
 - [ndstool](https://github.com/blocksds/ndstool)
-- [SkyTemple](https://skytemple.org/)
-- [SSB File Format](https://projectpokemon.org/home/docs/mystery-dungeon-nds/pmd2-ssb-r49/)
+- [SkyTemple](https://skytemple.org)
+- [SSB File Format](https://projectpokemon.org/home/docs/mystery-dungeon-nds/pmd2-ssb-r49)
 - [SSB Opcodes](https://wiki.skytemple.org/index.php/List_of_Opcodes)
+- [Tinke](https://github.com/pleonex/tinke)
 
 ## Solution
-### Starting Out
+### New Game
 If I were to tell you—a MysteryMail 3 participant in 2022—that the organizers planted a secret somewhere in the ROM, where would you first look? Well, there are quite a number of files within an NDS ROM, so it might be best to rule out what *shouldn't* be possible. First off, it *should* be well-hidden enough such that one of your fellow participants can't accidentally edit or delete the secret in SkyTemple itself. Or at the very least, niche enough that most participants wouldn't think to do it by accident. They're on a strict 47-hour time limit, after all.
 
-Right off the bat, this should eliminate the actual core function behind MysteryMail: SSB files. An SSB file contains the underlying "script" code that makes cutscenes tick; anything written in [ExplorerScript](https://explorerscript.skytemple.org/en/stable/) gets compiled to a `.ssb` file. The way MysteryMail works, an [Xdelta](https://en.wikipedia.org/wiki/Xdelta) patch is passed from participant to participant, but with all scripts prior to the previous participants cleared of all contents. For example, Participant 3 would be able to see Participant 2's script code, but Participant 1's script would be mostly empty.
+Right off the bat, this should eliminate the actual core function behind MysteryMail: SSB files. An SSB file contains the underlying "script" code that makes cutscenes tick; anything written in [ExplorerScript](https://explorerscript.skytemple.org/en/stable) gets compiled to a `.ssb` file. The way MysteryMail works, an [Xdelta](https://en.wikipedia.org/wiki/Xdelta) patch is passed from participant to participant, but with all scripts prior to the previous participants cleared of all contents. For example, Participant 3 would be able to see Participant 2's script code, but Participant 1's script would be mostly empty.
 
-Emphasis on the *mostly*. Participants are allowed to keep debug print opcodes intact, so long as they aren't anything spoilery. While this does mean that it's unlikely for the organizer-made scene to hide a secret, a message still could've been left to help guide us in the right direction!
+Emphasis on the *mostly*. Participants are allowed to keep debug print opcodes intact, so long as they aren't anything spoilery. While this does mean that it's unlikely for the organizer-made scene to hide a secret, a message still could've been left to help point us in the right direction!
 
 ### Acting In Good Faith
-So opening up `MYSTERY/initial.ssb`, we see the following:
+So opening up `SCRIPT/MYSTERY/initial.ssb`, we see the following:
 ```js
 debug_Print("Let's do this!");
 debug_Print("An important reminder: Keys can only be found in dungeons.");
@@ -34,7 +36,7 @@ hold;
 ```
 And...we get...
 
-![alt text](./cart_removed.png "Bold red text over a black background stating, \"There is nothing for you here.\" The bottom-right corner of the image contains barely legible text: \"thefirstnewactorintheactorlist\"")
+![alt text](img/cart_removed.png "Bold red text over a black background stating, \"There is nothing for you here.\" The bottom-right corner of the image contains barely legible text: \"thefirstnewactorintheactorlist\"")
 
 A crash! So was this just a red herring? Entering any other dungeon gives the same result...but we can make out some text on the bottom-right of the image: `thefirstnewactorintheactorlist`.
 
@@ -53,7 +55,7 @@ Either way, this is something to work with! Maybe `Marcus`, `NPC_MARCUS`, or `th
 These questions ultimately leave us with needing to investigate more of the ROM. We could think to investigate Flygon's (the species of `NPC_MARCUS`) data, items, or Text Strings...but there's actually one script that is very likely untouched by participants due to the way MysteryMail works.
 
 ### The Big Bad Unionall
-The script file [`COMMON/unionall.ssb`](https://wiki.skytemple.org/index.php/Unionall) is responsible for all of the core control flow in the game. It's always loaded during Ground Mode and decides when to play cutscenes. You can think of it like the scripting backbone that keeps PMD2 from turning to jelly. It's essential for any hack to function, and in the case of MysteryMail, can be *completely* ignored by participants. They don't have to worry about control flow, just their own Acting Scene. This is a relief for many, since Unionall is generally disliked by the community for being so cumbersome to interpret and edit.
+The script file [`COMMON/unionall.ssb`](https://wiki.skytemple.org/index.php/Unionall) is responsible for the core control flow of the game. It's always loaded during Ground Mode and decides when to play cutscenes. You can think of it like the scripting backbone that keeps PMD2 from turning to jelly. It's essential for any hack to function, and in the case of MysteryMail, can be *completely* ignored by participants. They don't have to worry about control flow, just their own Acting Scene. This is a relief for many, since Unionall is generally disliked by the community for being so cumbersome to interpret and edit.
 
 However, the event organizers definitely had to set up Unionall in a certain way to actually make the hack function. It's not likely that a participant would waste any of their precious 47 hours staring at something they shouldn't edit, which makes for a good hiding spot!
 
@@ -154,11 +156,11 @@ NEW_FORMAT:
 Nothing fancy, but it gets the job done well enough. If the scene's name is equal to `marcus` (scene names get converted to all lowercase at runtime), then the game will use the format string `SCRIPT/%s/%s.403` rather than `SCRIPT/%s/%s.ssa`.
 
 ### 11621: Opcode Not Found
-"Hang on just a second," I hear you begin to deduce, "if all you did was make the game accept a different file extension, then I can just change `.403` to `.ssa` and open `marcus.ssb` in SkyTemple!"
+"Hang on just a second," I hear you begin to deduce, "if all you did was make the game accept a different file extension, then I can just unpack the ROM using ndstool/DSLazy/Tinke, change `.403` to `.ssa`, and open `marcus.ssb` in SkyTemple!"
 
 And yes, you *can* do exactly that!
 
-![alt text](./keyerror.png "An uncaught exception in SkyTemple consisting of several lines of traceback, boiling down to \"KeyError: 11621\"")
+![alt text](img/keyerror.png "An uncaught exception in SkyTemple consisting of several lines of traceback, boiling down to \"KeyError: 11621\"")
 
 ...though it's not like it'd be that easy!
 
@@ -181,6 +183,7 @@ def 0 {
     screen2_FadeOut(1, 0);
     back2_SetMode(0);
 	// blah blah more code
+}
 ```
 `Null` (ID 0) is a valid opcode; it just does nothing. What's more likely than the challenge designer placing `UNK_11621` and `Null` is actually having `UNK_11621` take a single parameter of 0. And as the challenge designer, that's exactly what I did: Edit SkyTemple's `pmd2scriptdata.xml` to add a new opcode such that SkyTemple would accept it in compilation. And it works the opposite way as well—editing `pmd2scriptdata.xml` is a valid way to get SkyTemple to decompile `marcus.ssb`! No code needed after all!
 
@@ -224,9 +227,9 @@ Indeed, it can't be helped; nothing can escape the eyes of a hex editor. You don
 
 Oversight aside, there *is* something spooky about this string. If you managed to decompile `marcus.ssb` using SkyTemple in some form, this string is mysteriously nowhere to be found. What gives? Is it truly called in the script anywhere?
 
-As it turns out, it is! Checking the [SSB file format](https://projectpokemon.org/home/docs/mystery-dungeon-nds/pmd2-ssb-r49/), we can see just how many strings the script contains. The halfwords at ofsets 0x0 and 0x2 look to be what we want. In `marcus.ssb`, this turns out to be values 0x42 and 0x0, respectively. Counting up our strings in our EXPS, we're definitely short a few.
+As it turns out, it is! Checking the [SSB file format](https://projectpokemon.org/home/docs/mystery-dungeon-nds/pmd2-ssb-r49), we can see just how many strings the script contains. The halfwords at ofsets 0x0 and 0x2 look to be what we want. In `marcus.ssb`, this turns out to be values 0x42 and 0x0, respectively. Counting up our strings in our EXPS, we're definitely short a few.
 
-Turns out, decompilation is a pretty tough job. Decompiling from raw SSB to ExplorerScript has historically always been something of an uphill battle. It's pretty effective and *does* work flawlessly for all base game scripts, but hackers can structure their scripts in ways that the original developers may not have intended. And keep in mind, ExplorerScript is just a user-friendly representation of what SSB *could* have looked like from the original devs' perspective. Nowhere in ROM can we find opcode names that reference `for` or `while` loops. But ExplorerScript still implements them without the use of custom ASM. For constructs like these, it relies on the underlying `Branch` opcodes, of which there are a handful.
+Turns out, decompilation is a pretty tough job. Decompiling from raw SSB to ExplorerScript has historically always been something of an uphill battle. It's pretty effective and *does* work wonderfully for all base game scripts, but hackers can structure their scripts in ways that the original developers may not have intended. And keep in mind, ExplorerScript is just a user-friendly representation of what SSB *could* have looked like from the original devs' perspective. Nowhere in ROM can we find opcode names that reference `for` or `while` loops. But ExplorerScript still implements them without the use of custom ASM. For constructs like these, it relies on the underlying `Branch` opcodes, of which there are a handful.
 
 So what if we want to see these raw `Branch` opcodes? We don't necessarily have to stare at a hex editor—in `decompile_marcus_ssb.py`, we can change `ssb.to_explorerscript()` to `ssb.to_ssb_script()`. SsbScript is an intermediary between raw SSB and ExplorerScript. It's *much* closer to the raw SSB and doesn't try to make assumptions about fancy flow control constructs. It just reads the raw opcodes and makes them look pretty. Naturally, the decompilation is less likely to fail as a result. If we give it a try...
 
@@ -254,9 +257,9 @@ But don't think that the ExplorerScript decompiler immediately gives up once it 
 
 ## Solvers
 Congratulations to the whopping two solvers! Who could've seen these two coming?
-- [irdkwia](https://github.com/irdkwia)
+- [Irdkwia](https://github.com/irdkwia)
 	- Went above and beyond by producing a valid decompilation of `marcus.ssb`!
-- [techticks](https://github.com/tech-ticks)
+- [Techticks](https://github.com/tech-ticks)
 	- Went above and beyond by solving the FORECAST during his 47-hour period! The last part of his scene even directly references `marcus.ssb`!
 
 
